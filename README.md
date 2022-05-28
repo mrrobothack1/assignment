@@ -133,8 +133,56 @@ From the above Pictures, we can understand that we have a secure website and val
 
 ### 3. Automate the whole process using Gitlab.
 
+
+write a simple build and deployment pipeline for the docker and helm charts Gitlab CI.
+
+SOLUTION
+We have a .gitlab folder under it, we have
+
+1. templates.yaml file
+
+This file is like a global module that can be used at an organizational level. Once we create any format, we can use it N number of application repos for doing scanning and testing on applications.
+
+I have added a few scans such as yamllint, helm lint, trivy to scan yaml's, and dockerfile for any discrepancies.
+
+There is a job called .helm_init: &helm_init and .helm_deploy: &helm_deploy inside templates.yaml file which is used for deploying the helm charts which we have created earlier.
+
+###############################################################
+
+Now we have the main file called gitlab-ci.yaml.
+
+To fetch the jobs from templates.yaml file, I have used "include" to fetch it.
+
+Under it we have several stages, each will be described below
+
+```
+1. lint
+
+under here we have jobs to check the format and health of the yaml and helm charts
+
+2. build
+
+Under this, we are building the docker image by using kankio. kaniko is a tool to build container images from a Dockerfile, inside a container or Kubernetes cluster. It will build and push the docker images to the container registry which is mentioned by us.
+
+3. scan
+
+Once the image is developed, we will be scanning both dockerfile and image to find any kind of vulnerabilities which will cause us in a production-level environment. These jobs do their scan based on CVE and MISCONF.
+
+4. cert-manager
+
+This is the stage where we create the cert-manager using the curl and helm charts. Also will be creating an issuer which will define certificate Authority, in our case it's let’s Encrypt.
+
+5. ingress-nginx-deploy
+
+Will be deploying an ingress controller which recives public traffic
+
+6. application-deploy
+
+This stage will be deploying the docker images whiwhc we created earlier.
+
+7. destroy
+
+In here we can delete all the helm charts which we have created earlier. This will be a manual prrocess as it's a destroy job.
+
+```
 <img width="1413" alt="image" src="https://user-images.githubusercontent.com/46847735/170845678-965639ba-d9ec-45f9-9a15-0407a1fd3c60.png">
-
-
-
-
