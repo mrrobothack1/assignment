@@ -10,6 +10,13 @@ The 3 main challenges:
 
 
 
+
+
+
+
+
+
+
 Components
 
 1. Golang Web App Container
