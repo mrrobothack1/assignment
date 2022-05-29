@@ -1,0 +1,43 @@
+---
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '.yamllint'
+
+rules:
+  comments:
+    min-spaces-from-content: 1
+  line-length:
+    max: 150
+    level: warning
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+  indentation:
+    indent-sequences: consistent
+    level: warning
+  colons: enable
+  commas: enable
+  comments-indentation: disable
+  document-end: disable
+  document-start: disable
+  empty-lines: enable
+  empty-values: disable
+  hyphens: enable
+  key-duplicates: enable
+  key-ordering: disable
+  new-line-at-end-of-file: enable
+  new-lines:
+    level: warning
+  octal-values: disable
+  quoted-strings: disable
+  trailing-spaces: enable
+  truthy:
+    level: warning
+
+ignore: |
+  .history/
+  helm/app/templates

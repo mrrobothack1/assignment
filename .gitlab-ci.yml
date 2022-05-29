@@ -1,0 +1,140 @@
+---
+include:
+  - local: "/.gitlab/ci/templates.yml"
+
+
+stages:
+  - lint
+  - build
+  - scan
+  - cert-manager
+  - ingress-nginx-deploy
+  - application-deploy
+  - destroy-resources
+
+variables:
+  YAMLLINT_INPUT: ".gitlab-ci.yml"
+  YAMLLINT_OPTS: "-c .config.yml"
+  GCP_PROJECT_ID: "compliance-sec"
+
+yaml:
+  stage: lint
+  extends:
+    - .yaml
+
+helm:
+  stage: lint
+  extends:
+    - .helm
+
+
+dockerfile:
+  stage: lint
+  extends:
+    - .dockerfile
+
+
+
+before_script:
+  - |
+      export IMAGE_TAG="sojug/golang:latest"
+
+docker:build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug-v0.15.0
+    entrypoint: [""]
+  script:
+    - echo $KANIKO_AUTH_CONFIG > /kaniko/.docker/config.json
+    - |
+     /kaniko/executor --context ${CI_PROJECT_DIR}/ \
+     --dockerfile  ${CI_PROJECT_DIR}/Dockerfile \
+     --destination $IMAGE_TAG
+
+
+scan:dockerfile:
+  stage: scan
+  extends:
+    - .trivy_dockerfile
+  needs:
+    - job: docker:build
+      artifacts: false
+
+
+scan:image:
+  stage: scan
+  extends:
+    - .trivy_image
+  needs:
+    - job: docker:build
+      artifacts: false
+
+
+.deploy_template: &deploy_template
+  extends: .gcloud_auth
+  variables:
+    K8_CLUSTER_NAME: ${K8_CLUSTER_NAME}
+    K8_CLUSTER_REGION: ${K8_CLUSTER_REGION}
+    GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+
+################################
+# cert-manager
+################################
+
+cert-manager:
+  <<: *deploy_template
+  extends: .gcloud_auth
+  stage: cert-manager
+  variables:
+    K8_NAMESPACE: "cert-manager"
+    HELM_RELEASE_NAME: "cert-manager"
+    HELM_PATH: "deployment/charts/cert-manager"
+    HELM_CONFIG: "deployment/charts/cert-manager"
+    HELM_OPTS: --values ${HELM_CONFIG}/values.yaml
+  script:
+    - helm install ${HELM_RELEASE_NAME} ${HELM_PATH} --namespace ${K8_NAMESPACE} --create-namespace --version v1.8.0 --set installCRDs=true
+
+################################
+# ingress-nginx
+################################
+
+ingress-nginx-deploy:
+  <<: *deploy_template
+  extends: .gcloud_auth
+  stage: ingress-nginx-deploy
+  variables:
+    K8_NAMESPACE: "ingress-nginx"
+    HELM_RELEASE_NAME: "ingress-nginx"
+    HELM_PATH: "deployment/charts/ingress-nginx"
+    HELM_CONFIG: "deployment/charts/ingress-nginx"
+    HELM_OPTS: --values ${HELM_CONFIG}/values.yaml
+  script:
+    - helm install ${HELM_RELEASE_NAME} ${HELM_PATH} --namespace ${K8_NAMESPACE} --create-namespace
+
+################################
+# application-deploy
+################################
+
+application-deploy:
+  <<: *deploy_template
+  extends: .gcloud_auth
+  stage: application-deploy
+  variables:
+    K8_NAMESPACE: "default"
+    HELM_RELEASE_NAME: "golang-app"
+    HELM_PATH: "deployment/charts/app"
+    HELM_CONFIG: "deployment/charts/app"
+    HELM_OPTS: --values ${HELM_CONFIG}/values.yaml
+  script:
+    - helm install ${HELM_RELEASE_NAME} ${HELM_PATH}
+
+
+################################
+# Destroy
+################################
+destroy-resources:
+  <<: *deploy_template
+  extends: .helm_delete
+  stage: destroy-resources
+  only:
+    - master

@@ -1,0 +1,67 @@
+yaml:
+  stage: lint
+  image: sdesbure/yamllint
+  script:
+    - yamllint ${YAMLLINT_OPTS} ${YAMLLINT_INPUT}
+  allow_failure: true
+
+
+.helm:
+  stage: lint
+  image:
+    name: lachlanevenson/k8s-helm:v2.11.0
+    entrypoint: [""]
+  script:
+    - helm lint $HELM_OPTS $HELM_PATH
+
+.dockerfile:
+  image: hadolint/hadolint:v1.16.3-debian
+  variables:
+    DOCKER_DRIVER: overlay2
+  stage: lint
+  script:
+    - hadolint build/Dockerfile
+
+.trivy:
+  image:
+    name: aquasec/trivy:0.23.0
+    entrypoint: ["/usr/bin/env"]
+  variables:
+    TRIVY_SEVERITY: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+  script:
+    - trivy version
+  allow_failure: true
+
+
+.trivy_dockerfile:
+  extends:
+    - .trivy
+  variables:
+    DOCKERFILE: ${CI_PROJECT_DIR}/build/Dockerfile
+  script:
+    - trivy config ${DOCKERFILE}
+
+
+.trivy_image:
+  extends:
+    - .trivy
+  variables:
+    IMAGE_TAG: ""
+  script:
+    - trivy image ${IMAGE_TAG}
+
+
+.gcloud_auth: &gcloud_auth
+  image: devth/helm:v3.3.1
+  stage: deploy
+  before_script:
+    - gcloud auth list
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud container clusters get-credentials $K8_CLUSTER_NAME --region $K8_CLUSTER_REGION --project $GCP_PROJECT_ID
+
+
+.helm_delete:
+  <<: *gcloud_auth
+  stage: destroy
+  script:
+    - helm delete $(helm ls --all --short) --purge
