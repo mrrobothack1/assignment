@@ -8,18 +8,17 @@ The 3 main challenges:
 
 3. Defining the whole infrastructure as code
 
+## Research the technologies you plan to use
+
+The technologies and resources that have been used as Google Kubernetes engine, Kind clusters, cert-manager, ingress-nginx-controller, Let's Encrypt, Cloud DNS(GCP), Freenom, and finally Golang hello world application for testing the certificate generation.
 
 ### SOLUTIONS:
 
-### 1. Research the technologies you plan to use
 
- have done the implimentation with both Google GKE methodology  and Kind clusters methodology. ANd the technologies and resources have been used as cert-manager, ingress-nginx-controller, Let's Encrypt, Cloud DNS(GCP), Freenom, and finally golang hello world application for tetsing the certificate generation
+### 1 . Application creation and Automating the build of the Golang Web App Container
 
-###########################################################
-
-### 2. Application creation and Automating the build of the Golang Web App Container
-
-   We have a Golang file called main.go which prints “Hello World”. For creating a docker image out of it, I have created a dockerfile including the path   or the source file.
+   We have a Golang file called main.go which prints “Hello World”. For creating a docker image out of it, I have created a dockerfile including the path or the source file.
+   
    This process is automated by using the docker build stage which I have mentioned inside the GitLab pipeline. This job will be creating a dockerfile and will be pushing it to the registry so that we can pull it inside our Kubernetes deployment.
    
    <img width="210" alt="image" src="https://user-images.githubusercontent.com/46847735/170844210-1ccdf7a7-f149-4835-b62e-b54cb35544ae.png">
@@ -27,9 +26,13 @@ The 3 main challenges:
 
 ###########################################################
 
-### 3. Setting up the TLS Offloading load balancer in GKE and kind clusters.
+### 2. Setting up the TLS Offloading load balancer in GKE and kind clusters.
 
-   Iam using cert-manager for setting up the TLS process. **Cert-manager** lives inside the Kubernetes cluster and connects it with a certificate authority like Let’s Encrypt. Then we simply ask for a certificate using a yaml file. In the yaml file, we simply mention the domain which needs the certificate and the secret where the certificate is to be stored. The cert-manager will talk to the certificate authority and will place the new certificate in the Kubernetes secret. When a certificate is about to expire, the cert-manager will replace it with a new one. This eliminates the need to manually renew certificates
+   Iam using cert-manager for setting up the TLS process.
+   
+   **Cert-manager** lives inside the Kubernetes cluster and connects it with a certificate authority like Let’s Encrypt. Then we can ask for a certificate using a yaml file. In the yaml file, we mention the domain that needs the certificate and the secret where the certificate is to be stored.
+   
+   The cert-manager will talk to the certificate authority and will place the new certificate in the Kubernetes secret. When a certificate is about to expire, the cert-manager will replace it with a new one. This eliminates the need for manual renewal.
    
    Cert-manager adds certificates and certificate issuers as resource types in Kubernetes clusters, and simplifies the process of obtaining, renewing and using those certificates. It will ensure certificates are valid and up to date, and attempt to renew certificates at a configured time before expiry.
    
@@ -93,9 +96,10 @@ We have to create a certificate where we will be mentioning the clusterIssuer wh
 <img width="382" alt="image" src="https://user-images.githubusercontent.com/46847735/170845331-318ff1b7-dd55-4335-b2d4-29cfa10dcac0.png">
 
 
-Alos in certifcate which we created earlier, will have the renewal data and when it will be renewed automatically.
+Also in certifcate which we created earlier, will have the renewal data and when it will be renewed automatically.
 
 <img width="516" alt="image" src="https://user-images.githubusercontent.com/46847735/170862265-94accf4e-05f5-459f-b8cf-dd1d8883ecac.png">
+
 
 ## Deploy a pod that uses SSL
 
@@ -131,7 +135,7 @@ From the above Pictures, we can understand that we have a secure website and val
 ###########################################################
 
 
-### 4. Automate the whole process using Gitlab.
+### 3. Automate the whole process using Gitlab.
 
 
 write a simple build and deployment pipeline for the docker and helm charts Gitlab CI.
@@ -146,7 +150,6 @@ This file is like a global module that can be used at an organizational level. O
 I have added a few scans such as yamllint, helm lint, trivy to scan yaml's, and dockerfile for any discrepancies.
 
 There is a job called .gcloud_auth: &gcloud_authand .helm_deploy: &helm_deploy inside templates.yaml file which is used for deploying the helm charts which we have created earlier. And we have which will be deleteing all helm charts which have been created
-
 
 
 
