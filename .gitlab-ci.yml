@@ -127,6 +127,7 @@ application-deploy:
     HELM_OPTS: --values ${HELM_CONFIG}/values.yaml
   script:
     - helm install ${HELM_RELEASE_NAME} ${HELM_PATH}
+  when: manual
 
 
 ################################
@@ -136,5 +137,4 @@ destroy-resources:
   <<: *deploy_template
   extends: .helm_delete
   stage: destroy-resources
-  only:
-    - master
+  when: manual
