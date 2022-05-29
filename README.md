@@ -89,9 +89,13 @@ Now we have kubernetes cluster with a ingress controller which takes traffic, al
 
 
 We have to create a certificate where we will be mentioning the clusterIssuer which we created earlier, with the DNS name and the secret name where the tls has to be stored.
+
 <img width="382" alt="image" src="https://user-images.githubusercontent.com/46847735/170845331-318ff1b7-dd55-4335-b2d4-29cfa10dcac0.png">
 
 
+Alos in certifcate which we created earlier, will have the renewal data and when it will be renewed automatically.
+
+<img width="516" alt="image" src="https://user-images.githubusercontent.com/46847735/170862265-94accf4e-05f5-459f-b8cf-dd1d8883ecac.png">
 
 ## Deploy a pod that uses SSL
 
