@@ -147,7 +147,6 @@ I have added a few scans such as yamllint, helm lint, trivy to scan yaml's, and 
 
 There is a job called .gcloud_auth: &gcloud_authand .helm_deploy: &helm_deploy inside templates.yaml file which is used for deploying the helm charts which we have created earlier. And we have which will be deleteing all helm charts which have been created
 
-###############################################################
 
 
 
@@ -167,7 +166,7 @@ In here we are creating issuer and certificate which will be hooking up with the
 
 Also, we will be creating ingress to route traffic to the applications which be created using the deployment.yaml and service.yaml file.
 ```
-###############################################################
+
 
 
 ## gitlab-ci.yaml.
