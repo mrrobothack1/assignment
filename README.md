@@ -1,6 +1,4 @@
-# Assignment
-
-The 3 main challenges:
+# PROCESS
 
 1. Automating the build of the container
 
